@@ -1,111 +1,81 @@
-<p align="center">
-  <img src="images/logo.png" alt="Logo" width="50%"/>
-</p>
+# Async Web Server Template
 
-##
+This Python-based asynchronous web server template is designed for easy integration into other Python scripts, allowing for handling of HTTP requests and making external API calls. 
 
-**Aiotemplate** – базовая структура для быстрого начала разработки telegram-ботов на [aiogram 3.x](https://github.com/aiogram/aiogram).
-Шаблон предоставляет модульную ахритектуру, позволяет легко ориентироваться в коде, даёт прочный фундамент для поддержки и расширения функционала.
 
-## Ключевые особенности
+## Getting Started
 
-- **Встроенный веб-сервер** - Использует `aiohttp` для обеспечения интегрированного веб-сервера, обрабатывающего запросы, вебхуки и другие веб-взаимодействия.
-- **Переменные окружения через Pydantic Settings** - Управление окружением с помощью `pydantic-settings` для удобного контроля конфигурации.
-- **Поддержка баз данных через SQLAlchemy ORM** - Готовая настройка для интеграции SQL базы данных с использованием SQLAlchemy, упрощающая взаимодействие с базой данных.
+### Basic Example
 
-## Установка
+To quickly launch the server and make an example request, use the following setup:
 
-1. **Клонирование репозитория**:
-    ```bash
-    git clone https://github.com/nelexey/aiotemplate.git
-    cd aiotemplate
-    ```
+```python
+import asyncio
+from web.server import init_web_server
+from web.requests.Service import Service
 
-2. **Создание и активация виртуальной среды**:
-    ```bash
-    python3.12 -m venv env
+async def main():
+    # Launch the web server on localhost at port 8080
+    await init_web_server(config={'host': 'localhost', 'port': 8080})
     
-    # Для Linux/MacOS:
-    source env/bin/activate
+    # Initialize a service instance for making requests
+    example = Service('https://example.com')
     
-    # Для Windows:
-    env\Scripts\activate
-    ```
+    # Make a request to the example service
+    # Arguments:
+    # - method: HTTP method type ('GET' or 'POST')
+    # - data: Data to send with the request. For 'GET', it will be included as query parameters;
+    #   for 'POST', it will be in the request body.
+    # - r_type: Expected response type ('json', 'text', or 'read')
+    resp = await example.make_request(method='GET', data={}, r_type='text')
+    
+    print(resp)
 
-3. **Установка зависимостей**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4. **Переменные окружения**:
-    - Скопируйте `.env.example` в `.env` и настройте параметры под вашу конфигурацию.
-
-_Примечание: После завершения работы вы можете деактивировать виртуальную среду командой `deactivate`_
-
-## Начало работы
-
-1. **Настройка переменных окружения**:
-   - Определите токен бота, URL базы данных и настройки веб-сервера в файле `.env`.
-
-2. **Запуск бота**:
-    ```bash
-    python run.py
-    ```
-
-## Структура проекта
-
-```plaintext
-aiotemplate/
-│
-├── bot/
-│   ├── database/         # Настройка базы данных, модели и управление сессиями
-│   ├── handlers/         # Обработчики различных команд и сообщений бота
-│   ├── middlewares/      # Пользовательские промежуточные слои для обработки запросов
-│   ├── web/              # Веб-сервер и маршруты
-│   ├── misc/             # Различные конфигурации и утилиты
-│   └── main.py           # Инициализация и запуск бота
-│
-├── .env.example          # Пример переменных окружения, .env должен быть тут же
-├── requirements.txt      # Зависимости Python-пакетов
-└── README.md             # Документация проекта
+asyncio.run(main())
 ```
 
-## Возможности
+### Advanced Usage
 
-- ### Встроенный веб-сервер
+In the following example, the server processes a batch of asynchronous requests, counts successful responses, and records the start and end times:
 
-    - Веб-сервер построен с использованием `aiohttp` и находится в `bot/web/server.py`. Он настроен на эффективную обработку асинхронных запросов и может использоваться для различных целей, включая обработку вебхуков или обслуживание веб-интерфейса.
+```python
+import asyncio
+import time
+from web.server import init_web_server
+from web.requests.Service import Service
 
-- ### ORM с SQLAlchemy
+async def make_request(service, index):
+    """Helper function to make an individual request and check for success."""
+    try:
+        await service.make_request('GET', data={}, r_type='text')
+        print(f"Request {index + 1} completed successfully.")
+        return True
+    except Exception as e:
+        print(f"Request {index + 1} failed: {e}")
+        return False
 
-    - Шаблон включает настройку базы данных с использованием SQLAlchemy, с моделями, определенными в `bot/database/models/`. Эта настройка поддерживает операции CRUD и беспроблемную интеграцию с PostgreSQL или другими SQL базами данных.
+async def main():
+    # Launch the web server
+    await init_web_server(config={'host': 'localhost', 'port': 8080})
+    example_service = Service('https://example.com')
 
-- ### Конфигурация окружения через Pydantic Settings
+    start_time = time.time()
+    print("Starting batch processing...")
 
-    - Переменные окружения управляются через `pydantic-settings`, обеспечивая структурированную и легко поддерживаемую конфигурацию.
+    # Create tasks for 1000 async requests
+    tasks = [make_request(example_service, i) for i in range(1000)]
+    results = await asyncio.gather(*tasks)
 
-- ### Промежуточные слои и модульная маршрутизация
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    success_count = sum(results)
 
-    - Этот шаблон предоставляет пользовательские промежуточные слои (например, ограничение скорости, проверки аутентификации) и использует модульную маршрутизацию для организации функциональности бота. Обработчики аккуратно организованы по функциональности, что упрощает расширение возможностей бота.
+    print(f"Batch processing completed.")
+    print(f"Start time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
+    print(f"End time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}")
+    print(f"Total successful requests: {success_count}")
+    print(f"Elapsed time: {elapsed_time:.2f} seconds")
 
-## Переменные окружения
-
-Определите следующие переменные в вашем файле `.env`:
-
-- `BOT_TOKEN`: Токен Telegram бота
-- `DB_USER`, `DB_PASS`, `DB_HOST`, `DB_PORT`, `DB_NAME`: Детали подключения к базе данных
-- `WEB_HOST`, `WEB_PORT`, `WEB_TIMEOUT`, `WEB_MAX_CONNECTIONS`: Настройки веб-сервера
-
-Пример файла `.env`:
-```plaintext
-BOT_TOKEN=токен_бота
-DB_USER=пользователь_бд
-DB_PASS=пароль_бд
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=имя_бд
+asyncio.run(main())
 ```
 
-## Лицензия
-
-Этот проект лицензирован под MIT License. Смотрите [LICENSE](LICENSE) для подробностей.
