@@ -8,4 +8,5 @@ commands_router = Router()
 
 @commands_router.message(Command('start'), IsAdmin())
 async def start_command(m: Message):
-    await m.answer('Hello, Admin!')
+    """Обработчик команды /start для администраторов"""
+    await m.answer('Привет, администратор!')

@@ -6,4 +6,5 @@ other_router = Router()
 
 @other_router.message()
 async def please_use_commands(msg: Message):
-    await msg.answer('I can\'t handle')
+    """Обработчик для неизвестных команд"""
+    await msg.answer('Я не могу обработать эту команду')

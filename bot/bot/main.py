@@ -16,29 +16,30 @@ logger = logging.getLogger(__name__)
 
 async def main() -> None:
     """
-    Initializes and starts the bot, setting up web server and handler registration.
+    Инициализация и запуск бота
+    Настраивает веб-сервер и регистрирует обработчики
     """
     bot = Bot(token=settings.bot_token)
     dp = Dispatcher()
 
     try:
         # Start web server
-        logger.info("Starting web server...")
+        logger.info("Запуск веб-сервера...")
         await init_web_server(settings.web_config, bot)
-        logger.info(f"Web server started on {settings.web_config['host']}:{settings.web_config['port']}")
+        logger.info(f"Веб-сервер запущен на {settings.web_config['host']}:{settings.web_config['port']}")
 
         # Register bot handlers
-        logger.info("Registering bot handlers...")
+        logger.info("Регистрация обработчиков...")
         main_router = Router()
         await register_all_handlers(main_router, bot=bot)
         dp.include_router(main_router)
 
         # Start polling
-        logger.info("Starting bot polling...")
+        logger.info("Запуск поллинга...")
         await dp.start_polling(bot)
 
     except Exception as e:
-        logger.error(f"An error occurred: {e}")
+        logger.error(f"Произошла ошибка: {e}")
         await bot.session.close()
 
     finally:
@@ -49,6 +50,6 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logger.info("Bot stopped by user")
+        logger.info("Бот остановлен пользователем")
     except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
+        logger.error(f"Произошла неожиданная ошибка: {e}")

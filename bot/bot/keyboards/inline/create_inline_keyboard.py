@@ -3,17 +3,15 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 async def create_inline_keyboard(data: List[Tuple[str, str]], row_width: int = 3) -> InlineKeyboardMarkup:
     """
-    Creates an inline keyboard markup with specified button data and row width.
-
+    Создает инлайн клавиатуру с заданными кнопками и шириной строки
+    
     Args:
-        data (List[Tuple[str, str]]): A list of tuples where each tuple contains
-            (button text, callback data) for each button.
-        row_width (int): The maximum number of buttons in each row. Default is 3.
-
+        data: Список кортежей (текст кнопки, callback_data)
+        row_width: Максимальное количество кнопок в строке
+        
     Returns:
-        InlineKeyboardMarkup: An inline keyboard markup object for use in messages.
+        Объект инлайн клавиатуры
     """
-    # Generate inline keyboard markup by grouping buttons into rows according to row_width
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
